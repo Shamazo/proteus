@@ -1,4 +1,5 @@
 if (NOT PLATFORM_ONLY)
+  add_subdirectory(gpu-sched-cli-server)
   add_subdirectory(cli-server)
   add_subdirectory(multiib)
   add_subdirectory(olap/flags)
