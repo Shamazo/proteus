@@ -71,6 +71,8 @@ cmake-build*
 *.sublime-workspace
 .clion.source.upload.marker
 !.idea/codeStyles
+build/
+opt/
 
 #Documentation
 docs/**
