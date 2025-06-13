@@ -131,6 +131,9 @@ string(STRIP "${CMAKE_C_FLAGS} ${COMPILER_FLAGS}" CMAKE_C_FLAGS)
 # Add utilities to enable the warning flags
 include(warning-flags)
 
+# export a compile_commands.json 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 #-----------------------------------------------------------------------
 # Various dependencies
 # Note the USE_CUDA flag is used in our cuda.cmake module
@@ -147,22 +150,22 @@ include(perftests)
 if (NOT PLATFORM_ONLY)
   include(rapidjson)
   include(cuckoo)
-  include(grpc)
+#  include(grpc)
 endif()
 
 #-----------------------------------------------------------------------
 # Build Documentation
 #-----------------------------------------------------------------------
-find_package(Doxygen)
-if (DOXYGEN_FOUND)
-  doxygen_add_docs(
-    doxygen
-    ${CMAKE_CURRENT_SOURCE_DIR}/apps
-    ${CMAKE_CURRENT_SOURCE_DIR}/core
-    ${CMAKE_CURRENT_SOURCE_DIR}/runtime
-    COMMENT "Generate doxygen pages"
-  )
-endif ()
+# find_package(Doxygen)
+# if (DOXYGEN_FOUND)
+#   doxygen_add_docs(
+#     doxygen
+#     ${CMAKE_CURRENT_SOURCE_DIR}/apps
+#     ${CMAKE_CURRENT_SOURCE_DIR}/core
+#     ${CMAKE_CURRENT_SOURCE_DIR}/runtime
+#     COMMENT "Generate doxygen pages"
+#   )
+# endif ()
 
 install(DIRECTORY "frontends/R/" DESTINATION ${CMAKE_INSTALL_PREFIX}/pelago/frontends/R/) # Creates <..>/pelago/frontends/R
 
@@ -179,7 +182,7 @@ endif()
 add_subdirectory(core/platform)
 if (NOT PLATFORM_ONLY)
 add_subdirectory(core/storage)
-add_subdirectory(core/planner)
+# add_subdirectory(core/planner)
 add_subdirectory(core/olap)
 add_subdirectory(core/oltp)
 add_subdirectory(core/htap)
