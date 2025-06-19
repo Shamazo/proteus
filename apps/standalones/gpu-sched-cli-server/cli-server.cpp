@@ -81,7 +81,7 @@ int main(int argc, char *argv[]) {
 
   set_exec_location_on_scope aff{topology::getInstance().getCpuNumaNodes()[0]};
 
-  const size_t SF = 100;
+  const size_t SF = FLAGS_ssb_scale_factor;
   auto stats = ssb::Query::getStats(SF);
   LOG(INFO) << "preparing SSB at scale factor: " << SF;
   // store in a map so we can access them by name
