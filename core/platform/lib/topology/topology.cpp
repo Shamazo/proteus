@@ -212,24 +212,25 @@ void *topology::cpunumanode::alloc(size_t bytes) const {
   void *mem = mmap(nullptr, bytes, PROT_READ | PROT_WRITE,
                    MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB, -1, 0);
   LOG_IF(FATAL, mem == MAP_FAILED) << "mmap failed (" << strerror(errno) << ")";
-  assert(mem != MAP_FAILED);
-  assert((((uintptr_t)mem) % hugepage) == 0);
+  CHECK_NE(mem, MAP_FAILED);
+  CHECK_EQ((((uintptr_t)mem) % hugepage), 0);
   linux_run(madvise(mem, bytes, MADV_DONTFORK));
 #ifndef NDEBUG
-  {
-    int status;
-    // use move_pages as getCpuNumaNodeAddressed checks only the policy
-    auto move_pages_result = move_pages(0, 1, &mem, nullptr, &status, 0);
-    if (move_pages_result > 0) {
-      LOG(FATAL) << "Failed to move " << move_pages_result << " pages";
-    }
-    if (move_pages_result < 0) {
-      LOG(FATAL) << "Failed to move_pages: " << strerror(errno);
-    }
-    // check that page has not been prefaulted (status should be -ENOENT)!
-    // otherwise, setting the numa policy will not be effective
-    assert(status == -ENOENT);
-  }
+// linux 6.8 no longer returns -ENOENT 
+  // {
+  //   int status;
+  //   // use move_pages as getCpuNumaNodeAddressed checks only the policy
+  //   auto move_pages_result = move_pages(0, 1, &mem, nullptr, &status, 0);
+  //   if (move_pages_result > 0) {
+  //     LOG(FATAL) << "Failed to move " << move_pages_result << " pages";
+  //   }
+  //   if (move_pages_result < 0) {
+  //     LOG(FATAL) << "Failed to move_pages: " << strerror(errno);
+  //   }
+  //   // check that page has not been prefaulted (status should be -ENOENT)!
+  //   // otherwise, setting the numa policy will not be effective
+  //   assert(status == -ENOENT);
+  // }
 #endif
 
   // TODO: consider using numa_set_strict
@@ -239,9 +240,10 @@ void *topology::cpunumanode::alloc(size_t bytes) const {
   {
     int status;
     // use move_pages as getCpuNumaNodeAddressed checks only the policy
-    assert(move_pages(0, 1, &mem, nullptr, &status, 0) == 0);
+    CHECK(move_pages(0, 1, &mem, nullptr, &status, 0) == 0);
     // That check is not critical but only a sanity check, consider removing
-    assert(status == -ENOENT);
+    // also does not work for linux 6.8
+    // CHECK_EQ(status, -ENOENT);
   }
 
   if (bytes >= sizeof(int)) {
@@ -254,9 +256,9 @@ void *topology::cpunumanode::alloc(size_t bytes) const {
     {
       // now the first page should have been prefaulted, verify using move_pages
       int status;
-      assert(move_pages(0, 1, &mem, nullptr, &status, 0) == 0);
+      CHECK(move_pages(0, 1, &mem, nullptr, &status, 0) == 0);
       // the faulted page should be on the correct socket now
-      assert(status == id);
+      CHECK_EQ(status, id);
     }
   }
 #endif
