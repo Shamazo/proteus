@@ -48,15 +48,30 @@ if(CUDA_FOUND AND USE_CUDA)
 			-lnvidia-ml
 			-lcupti
 			${CUDA_cudadevrt_LIBRARY} -lnvvm)
+	# Since CUDA header locations are moving from time to time
+	# (https://github.com/google/nvidia_libs_test/issues/11), we need to add the potential headers
+	# path for the CUPTI library manually. This library's header can be located either in the standard
+	# CUDA headers path or in the extras/CUPTI. We can use FindCUDAToolkit cmake instead of FindCUDA
+	# (which is deprecated), because it looks into two possible locations for the CUPTI header
+	# (https://gitlab.kitware.com/cmake/cmake/-/blob/master/Modules/FindCUDAToolkit.cmake?ref_type=heads#L1296)
+	# However, integration with FindCUDAToolkit is quite painful for the currently used cmake version,
+	# as FindCUDAToolkit doesn't provide the same functionality as FindCUDA cmake
+	# (CUDA_SELECT_NVCC_ARCH_FLAGS, see https://gitlab.kitware.com/cmake/cmake/-/issues/19199,
+	# and CUDAToolkit_LIBRARY_ROOT).
+	set(CUDA_INCLUDE_DIRS ${CUDA_INCLUDE_DIRS} "${CUDA_TOOLKIT_ROOT_DIR}/extras/CUPTI/include")
 
 	include_directories(
 		SYSTEM ${CUDA_INCLUDE_DIRS}
 		)
 
+	# We specify here extras/CUPTI/lib64 path because these library files can be located either in
+	# the standard CUDA libraries path or in the extras/CUPTI. See the comment above CUDA_INCLUDE_DIRS
+	# for more information.
 	link_directories(
 		"${CUDA_TOOLKIT_ROOT_DIR}/lib64"
 		"${CUDA_TOOLKIT_ROOT_DIR}/lib64/stubs"
 		"${CUDA_TOOLKIT_ROOT_DIR}/nvvm/lib64"
+		"${CUDA_TOOLKIT_ROOT_DIR}/extras/CUPTI/lib64"
 		)
 
 	set(CUDA "CUDA-FOUND")

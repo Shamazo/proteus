@@ -70,6 +70,18 @@ if (USE_CUDA)
   endif ()
 
   string(REPLACE " " ";" BMFLAGS ${CUDA_CXXFLAGS})
+  # Here we generate arguments for the below command which include necessary CUDA header paths.
+  # Although clang looks into <cuda-root-dir>/include for headers, there is a possibility that the
+  # CUPTI header path will be different (extras/CUPTI/include) (see comments in cuda.cmake for more
+  # information). So we append arguments with both possible header locations to be sure that clang
+  # can find the proper location.
+  foreach(DIR ${CUDA_INCLUDE_DIRS})
+    list(APPEND CUDA_INCLUDE_DIRS_FLAGS -I${DIR})
+  endforeach()
+
+  # Generate LLVM bitcode file with device code
+  # The generated file is used for link-time optimization with the JITed code
+  # TODO: correctly accept the includes and CXX flags
 
   # Generate LLVM bitcode file with device code
   # The generated file is used for link-time optimization with the JITed code
@@ -82,6 +94,7 @@ if (USE_CUDA)
     ${BMFLAGS}
     # TODO: correctly accept the includes flags
     -I${CMAKE_CURRENT_SOURCE_DIR}/include
+    ${CUDA_INCLUDE_DIRS_FLAGS}
     -isystem ${CMAKE_BINARY_DIR}/_deps/glog-download-build
     -isystem ${CMAKE_BINARY_DIR}/_deps/glog-download-src/src
     # Embed the generated file into the library
